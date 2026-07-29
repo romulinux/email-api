@@ -3,12 +3,12 @@ async function testarEnvioDeEmail() {
 
   const payload = {
     remetente: {
-      email: "mneves.romulo@gmail.com",
-      nome: "Rômulo"
+      email: "romulinux@gmail.com",
+      nome: "Romulinux"
     },
     destinatario: {
       email: "romulinux@gmail.com",
-      nome: "Romulinux"
+      nome: "Rômulo"
     },
     assunto: "Teste da API via Node.js",
     mensagem: "Funcionou! A mensagem passou pelo API Gateway e foi enfileirada no SQS com sucesso."

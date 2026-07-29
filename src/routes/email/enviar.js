@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 const sesClient = new SESClient({ region: "us-east-1" });
@@ -12,12 +14,27 @@ export const handler = async (event) => {
     console.log("Assunto:", assunto);
     console.log("Mensagem:", mensagem);
 
+    let html = mensagem;
+    try {
+      const template = fs.readFileSync(path.join(__dirname, 'templates/contato.html'), 'utf-8');
+      html = template
+               .replace('{remetente.nome}', remetente.nome)
+               .replace('{remetente.email}', remetente.email)
+               .replace('{mensagem}', mensagem);
+
+    } catch (error) {
+      console.error("Erro ao ler o template HTML:", error);
+    }
+
     const params = {
       Source: `${remetente.nome} <${remetente.email}>`,
       Destination: { ToAddresses: [destinatario.email] },
       Message: {
         Subject: { Data: assunto },
-        Body: { Text: { Data: mensagem } }
+        Body: {
+          Html: { Data: html },
+          Text: { Data: mensagem }
+        }
       }
     };
 
