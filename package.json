@@ -1,0 +1,12 @@
+{
+  "name": "api-envio-email",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node ./tests/email.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.1097.0"
+  }
+}
