@@ -1,0 +1,43 @@
+name: Deploy Lambda Code
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**' # Só roda a pipeline se os arquivos Node.js mudarem
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependências (npm ci)
+        working-directory: ./src
+        run: npm ci
+
+      - name: Zipar o código e as dependências
+        working-directory: ./src
+        # O comando zip roda dentro de /src para que index.mjs fique na raiz do zip
+        run: zip -r ../function.zip . 
+
+      - name: Configurar credenciais da AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Atualizar o código na AWS Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name email_sender_worker \
+            --zip-file fileb://function.zip \
+            --publish
