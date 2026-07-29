@@ -160,20 +160,20 @@ resource "aws_api_gateway_model" "email_model" {
         type = "object",
         required = ["email", "nome"],
         properties = {
-          email = { type = "string" },
-          nome  = { type = "string" }
+          email = { type = "string", maxLength = 100 },
+          nome  = { type = "string", maxLength = 100 }
         }
       },
       destinatario = {
         type = "object",
         required = ["email", "nome"],
         properties = {
-          email = { type = "string" },
-          nome  = { type = "string" }
+          email = { type = "string", maxLength = 100 },
+          nome  = { type = "string", maxLength = 100 }
         }
       },
-      assunto  = { type = "string" },
-      mensagem = { type = "string" }
+      assunto  = { type = "string", maxLength = 128 },
+      mensagem = { type = "string", maxLength = 2048 }
     }
   })
 }

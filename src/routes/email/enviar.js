@@ -2,16 +2,53 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import sanitizeHtml from 'sanitize-html';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const sesClient = new SESClient({ region: "us-east-1" });
 
+const sanitize = function (field) {
+  return sanitizeHtml(field, {
+    allowedTags: [],
+    allowedAttributes: {}
+  });
+}
+
 export const handler = async (event) => {
   for (const record of event.Records) {
+    console.log('redord.body', record.body);
+    const MAX_PAYLOAD_SIZE = 10 * 1024; // 10 KB em bytes
+    if (record.body.length > MAX_PAYLOAD_SIZE) {
+      console.error("❌ Rejeitado: Payload excede o tamanho máximo permitido.");
+      continue; // Pula esta mensagem da fila para evitar processamento abusivo
+    }
+
     const body = JSON.parse(record.body);
     const { remetente, destinatario, assunto, mensagem } = body;
+
+    if (!remetente || !destinatario || !assunto || !mensagem) {
+      console.error("Dados inválidos:", body);
+      continue;
+    }
+
+    remetente.nome = sanitize(remetente.nome);
+    remetente.email = sanitize(remetente.email);
+    destinatario.nome = sanitize(destinatario.nome);
+    destinatario.email = sanitize(destinatario.email);
+    assunto = sanitize(assunto);
+    mensagem = sanitize(mensagem);
+
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regexEmail.test(remetente.email)) {
+      console.error("E-mail inválido rejeitado:", remetente.email);
+      continue; // Pula esta mensagem da fila se o e-mail for malformado
+    }
+    if (!regexEmail.test(destinatario.email)) {
+      console.error("E-mail inválido rejeitado:", destinatario.email);
+      continue; // Pula esta mensagem da fila se o e-mail for malformado
+    }
 
     console.log("Remetente:", remetente);
     console.log("Destinatario:", destinatario);
