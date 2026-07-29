@@ -22,9 +22,9 @@ export const handler = async (event) => {
     try {
       const template = fs.readFileSync(path.join(__dirname, '..', '..', 'templates', 'email', 'contato.html'), 'utf-8');
       html = template
-               .replace('{{remetente.nome}}', remetente.nome)
-               .replace('{{remetente.email}}', remetente.email)
-               .replace('{{mensagem}}', mensagem);
+               .replaceAll('{{remetente.nome}}', remetente.nome)
+               .replaceAll('{{remetente.email}}', remetente.email)
+               .replaceAll('{{mensagem}}', mensagem);
 
     } catch (error) {
       console.error("Erro ao ler o template HTML:", error);
