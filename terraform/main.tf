@@ -16,11 +16,38 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 # ==========================================
-# 1. SQS Queue
+# 1. SQS Dead Letter Queue (DLQ)
+# ==========================================
+resource "aws_sqs_queue" "email_dlq" {
+  name = "email-dlq"
+  # Mensagens na DLQ podem ser retidas por até 14 dias (máximo da AWS) 
+  # para você conseguir investigar o que deu errado.
+  message_retention_seconds = 1209600 
+}
+
+# ==========================================
+# 2. SQS Queue Principal
 # ==========================================
 resource "aws_sqs_queue" "email_queue" {
   name                       = "email-queue"
-  visibility_timeout_seconds = 30 # Tempo que o Lambda tem para processar antes de voltar para a fila
+  visibility_timeout_seconds = 30 # Tempo que o Lambda tem para processar
+
+  # Configuração da Dead Letter Queue
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.email_dlq.arn
+    # maxReceiveCount define quantas tentativas o Lambda fará 
+    # antes de jogar a mensagem para a DLQ (ex: após 3 falhas, vai pra DLQ)
+    maxReceiveCount     = 3
+  })
+}
+
+# Garante que a DLQ seja criada antes de referenciar na policy da fila principal
+resource "aws_sqs_queue_redrive_allow_policy" "dlv_allow" {
+  queue_url = aws_sqs_queue.email_dlq.id
+  redrive_allow_policy = jsonencode({
+    redrivePermission = "byQueue",
+    sourceQueueArns   = [aws_sqs_queue.email_queue.arn]
+  })
 }
 
 # ==========================================

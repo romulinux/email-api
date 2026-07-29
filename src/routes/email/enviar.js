@@ -19,6 +19,7 @@ const sanitize = function (field) {
 export const handler = async (event) => {
   for (const record of event.Records) {
     console.log('redord.body', record.body);
+    console.log('redord.body.length', record.body.length);
     const MAX_PAYLOAD_SIZE = 10 * 1024; // 10 KB em bytes
     if (record.body.length > MAX_PAYLOAD_SIZE) {
       console.error("❌ Rejeitado: Payload excede o tamanho máximo permitido.");
@@ -26,7 +27,7 @@ export const handler = async (event) => {
     }
 
     const body = JSON.parse(record.body);
-    const { remetente, destinatario, assunto, mensagem } = body;
+    let { remetente, destinatario, assunto, mensagem } = body;
 
     if (!remetente || !destinatario || !assunto || !mensagem) {
       console.error("Dados inválidos:", body);
