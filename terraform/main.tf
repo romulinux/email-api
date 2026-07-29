@@ -77,7 +77,7 @@ data "archive_file" "lambda_zip" {
 resource "aws_lambda_function" "email_sender" {
   function_name    = "email_sender_worker"
   role             = aws_iam_role.lambda_role.arn
-  handler          = "index.handler"
+  handler          = "routes/email/enviar.handler"
   runtime          = "nodejs20.x"
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
