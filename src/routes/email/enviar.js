@@ -7,6 +7,11 @@ export const handler = async (event) => {
     const body = JSON.parse(record.body);
     const { remetente, destinatario, assunto, mensagem } = body;
 
+    console.log("Remetente:", remetente);
+    console.log("Destinatario:", destinatario);
+    console.log("Assunto:", assunto);
+    console.log("Mensagem:", mensagem);
+
     const params = {
       Source: `${remetente.nome} <${remetente.email}>`,
       Destination: { ToAddresses: [destinatario.email] },
