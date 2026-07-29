@@ -1,6 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const sesClient = new SESClient({ region: "us-east-1" });
 
@@ -16,7 +20,7 @@ export const handler = async (event) => {
 
     let html = mensagem;
     try {
-      const template = fs.readFileSync(path.join(__dirname, 'templates/contato.html'), 'utf-8');
+      const template = fs.readFileSync(path.join(__dirname, '..', '..', 'templates', 'email', 'contato.html'), 'utf-8');
       html = template
                .replace('{remetente.nome}', remetente.nome)
                .replace('{remetente.email}', remetente.email)
