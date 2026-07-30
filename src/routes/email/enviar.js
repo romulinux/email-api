@@ -130,8 +130,8 @@ export const handler = async (event) => {
     try {
       const template = fs.readFileSync(path.join(__dirname, '..', '..', 'templates', 'email', 'contato.html'), 'utf-8');
       html = template
-        .replaceAll('{{remetente.nome}}', remetente.nome)
-        .replaceAll('{{remetente.email}}', remetente.email)
+        .replaceAll('{{nome}}', remetente.nome)
+        .replaceAll('{{email}}', remetente.email)
         .replaceAll('{{mensagem}}', mensagem);
 
     } catch (error) {
