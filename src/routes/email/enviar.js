@@ -133,7 +133,7 @@ export const handler = async (event) => {
     }
 
 
-    await enviarEmail(destinatario, assunto, mensagem, html);
+    await sendEmail(destinatario, assunto, mensagem, html);
   }
   return { statusCode: 200, body: "Processado com sucesso" };
 };
