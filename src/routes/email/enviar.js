@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import nodemailer from 'nodemailer';
 import sanitizeHtml from 'sanitize-html';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,66 @@ const sanitize = function (field) {
     allowedTags: [],
     allowedAttributes: {}
   });
+}
+
+const sendEmail = async (destinatario, assunto, mensagem, html) => {
+  const sender = process.env.EMAIL_SENDER;
+  if (!sender) {
+    throw new Error("E-mail de remetente não configurado.");
+  }
+
+  const remetente = {
+    email: process.env.SMTP_EMAIL,
+    nome: "Contato"
+  };
+
+  if (sender === "SES") {
+    const params = {
+      Source: `${remetente.nome} <${remetente.email}>`,
+      Destination: { ToAddresses: [destinatario.email] },
+      Message: {
+        Subject: { Data: assunto },
+        Body: {
+          Html: { Data: html },
+          Text: { Data: mensagem }
+        }
+      }
+    };
+
+    try {
+      await sesClient.send(new SendEmailCommand(params));
+      console.log(`Email enviado para ${destinatario.email}`);
+    } catch (error) {
+      console.error("Erro ao enviar email:", error);
+      throw error; // Lança o erro para que a mensagem volte para a fila/DLQ
+    }
+  } else if (sender === "SMTP") {
+    // 1. Configuração do Transporter (Transportador de e-mail)
+    const transporter = nodemailer.createTransport({
+      host: "${process.env.SMTP_HOST}", // Altere para a sua região do SES
+      port: process.env.SMTP_PORT,
+      secure: false, // true para 465, false para outras portas
+      auth: {
+        user: "${process.env.SMTP_USER}",
+        pass: "${process.env.SMTP_PASS}"
+      }
+    });
+
+    try {
+      // 2. Envio da mensagem
+      const info = await transporter.sendMail({
+        from: '"${remetente.nome}" <${remente.email}>', // Remetente verificado no SES
+        to: "${destinatario.email}", // Destinatário
+        subject: assunto,
+        text: mensagem, // Fallback em texto
+        html: html,  // Seu template HTML aqui
+      });
+
+      console.log("✅ E-mail enviado com sucesso! Message ID:", info.messageId);
+    } catch (error) {
+      console.error("❌ Erro ao enviar e-mail:", error);
+    }
+  }
 }
 
 export const handler = async (event) => {
@@ -63,33 +124,16 @@ export const handler = async (event) => {
     try {
       const template = fs.readFileSync(path.join(__dirname, '..', '..', 'templates', 'email', 'contato.html'), 'utf-8');
       html = template
-               .replaceAll('{{remetente.nome}}', remetente.nome)
-               .replaceAll('{{remetente.email}}', remetente.email)
-               .replaceAll('{{mensagem}}', mensagem);
+        .replaceAll('{{remetente.nome}}', remetente.nome)
+        .replaceAll('{{remetente.email}}', remetente.email)
+        .replaceAll('{{mensagem}}', mensagem);
 
     } catch (error) {
       console.error("Erro ao ler o template HTML:", error);
     }
 
-    const params = {
-      Source: `${remetente.nome} <${remetente.email}>`,
-      Destination: { ToAddresses: [destinatario.email] },
-      Message: {
-        Subject: { Data: assunto },
-        Body: {
-          Html: { Data: html },
-          Text: { Data: mensagem }
-        }
-      }
-    };
 
-    try {
-      await sesClient.send(new SendEmailCommand(params));
-      console.log(`Email enviado para ${destinatario.email}`);
-    } catch (error) {
-      console.error("Erro ao enviar email:", error);
-      throw error; // Lança o erro para que a mensagem volte para a fila/DLQ
-    }
+    await enviarEmail(destinatario, assunto, mensagem, html);
   }
   return { statusCode: 200, body: "Processado com sucesso" };
 };
