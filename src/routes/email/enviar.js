@@ -18,10 +18,13 @@ const sanitize = function (field) {
 }
 
 const sendEmail = async (destinatario, assunto, mensagem, html) => {
+  console.log("sendEmail::Enviando e-mail...");
   const sender = process.env.EMAIL_SENDER;
   if (!sender) {
     throw new Error("E-mail de remetente não configurado.");
   }
+
+  console.log("sendEmail::sender", sender);
 
   const remetente = {
     email: process.env.SMTP_EMAIL,
@@ -49,6 +52,7 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
       throw error; // Lança o erro para que a mensagem volte para a fila/DLQ
     }
   } else if (sender === "SMTP") {
+    console.log("sendEmail::sender === SMTP", sender);
     // 1. Configuração do Transporter (Transportador de e-mail)
     const transporter = nodemailer.createTransport({
       host: "${process.env.SMTP_HOST}", // Altere para a sua região do SES
