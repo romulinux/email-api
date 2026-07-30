@@ -64,7 +64,7 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
       }
     };
     const transporter = nodemailer.createTransport(transport);
-    console.log("sendEmail::transporter", transporter);
+    console.log("sendEmail::transport", transport);
 
     try {
       // 2. Envio da mensagem
