@@ -19,7 +19,7 @@ const sanitize = function (field) {
 
 const sendEmail = async (destinatario, assunto, mensagem, html) => {
   console.log("sendEmail::Enviando e-mail...");
-  const sender = process.env.EMAIL_SENDER;
+  const sender = "${process.env.EMAIL_SENDER}";
   if (!sender) {
     throw new Error("E-mail de remetente não configurado.");
   }
@@ -27,11 +27,11 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
   console.log("sendEmail::sender", sender);
 
   const remetente = {
-    email: process.env.SMTP_EMAIL,
+    email: "${process.env.SMTP_EMAIL}",
     nome: "Contato"
   };
 
-  if (sender === "SES") {
+  if (sender == "SES") {
     const params = {
       Source: `${remetente.nome} <${remetente.email}>`,
       Destination: { ToAddresses: [destinatario.email] },
@@ -51,7 +51,7 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
       console.error("Erro ao enviar email:", error);
       throw error; // Lança o erro para que a mensagem volte para a fila/DLQ
     }
-  } else if (sender === "SMTP") {
+  } else if (sender == "SMTP") {
     console.log("sendEmail::sender === SMTP", sender);
     // 1. Configuração do Transporter (Transportador de e-mail)
     const transport = {
