@@ -19,7 +19,7 @@ const sanitize = function (field) {
 
 const sendEmail = async (destinatario, assunto, mensagem, html) => {
   console.log("sendEmail::Enviando e-mail...");
-  const sender = "${process.env.EMAIL_SENDER}";
+  const sender = `${process.env.EMAIL_SENDER}`;
   if (!sender) {
     throw new Error("E-mail de remetente não configurado.");
   }
@@ -27,7 +27,7 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
   console.log("sendEmail::sender", sender);
 
   const remetente = {
-    email: "${process.env.SMTP_EMAIL}",
+    email: `${process.env.SMTP_EMAIL}`,
     nome: "Contato"
   };
 
@@ -55,12 +55,12 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
     console.log("sendEmail::sender === SMTP", sender);
     // 1. Configuração do Transporter (Transportador de e-mail)
     const transport = {
-      host: "${process.env.SMTP_HOST}", // Altere para a sua região do SES
+      host: `${process.env.SMTP_HOST}`, // Altere para a sua região do SES
       port: process.env.SMTP_PORT,
       secure: false, // true para 465, false para outras portas
       auth: {
-        user: "${process.env.SMTP_USER}",
-        pass: "${process.env.SMTP_PASS}"
+        user: `${process.env.SMTP_USER}`,
+        pass: `${process.env.SMTP_PASS}`
       }
     };
     const transporter = nodemailer.createTransport(transport);
