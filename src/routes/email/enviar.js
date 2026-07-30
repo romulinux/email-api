@@ -69,8 +69,8 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
     try {
       // 2. Envio da mensagem
       const info = await transporter.sendMail({
-        from: '"${remetente.nome}" <${remetente.email}>', // Remetente verificado no SES
-        to: "${destinatario.email}", // Destinatário
+        from: `"${remetente.nome}" <${remetente.email}>`, // Remetente verificado no SES
+        to: destinatario.email, // Destinatário
         subject: assunto,
         text: mensagem, // Fallback em texto
         html: html,  // Seu template HTML aqui
