@@ -54,7 +54,7 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
   } else if (sender === "SMTP") {
     console.log("sendEmail::sender === SMTP", sender);
     // 1. Configuração do Transporter (Transportador de e-mail)
-    const transporter = nodemailer.createTransport({
+    const transport = {
       host: "${process.env.SMTP_HOST}", // Altere para a sua região do SES
       port: process.env.SMTP_PORT,
       secure: false, // true para 465, false para outras portas
@@ -62,12 +62,14 @@ const sendEmail = async (destinatario, assunto, mensagem, html) => {
         user: "${process.env.SMTP_USER}",
         pass: "${process.env.SMTP_PASS}"
       }
-    });
+    };
+    const transporter = nodemailer.createTransport(transport);
+    console.log("sendEmail::transporter", transporter);
 
     try {
       // 2. Envio da mensagem
       const info = await transporter.sendMail({
-        from: '"${remetente.nome}" <${remente.email}>', // Remetente verificado no SES
+        from: '"${remetente.nome}" <${remetente.email}>', // Remetente verificado no SES
         to: "${destinatario.email}", // Destinatário
         subject: assunto,
         text: mensagem, // Fallback em texto
