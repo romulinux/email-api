@@ -7,6 +7,16 @@ terraform {
   }
 }
 
+# Lê e transforma o arquivo .env da pasta atual do Terraform em um mapa
+locals {
+  env_file_content = file("${path.module}/.env")
+  env_vars = {
+    for line in split("\n", local.env_file_content) :
+    split("=", line)[0] => split("=", line)[1]
+    if length(trimspace(line)) > 0 && !startswith(trimspace(line), "#")
+  }
+}
+
 # Configuração do provider
 provider "aws" {
   region = "us-east-1" # Região padrão para SES, pode ser alterada conforme a necessidade
@@ -108,6 +118,11 @@ resource "aws_lambda_function" "email_sender" {
   runtime          = "nodejs20.x"
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+
+  # Injeta automaticamente todas as variáveis lidas do .env
+  environment {
+    variables = local.env_vars
+  }
 }
 
 # Trigger do SQS para o Lambda
